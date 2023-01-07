@@ -1,7 +1,7 @@
 # macprosilentcool
 Bash script to control cooling fans of MacBook Pro Laptops in Linux
 
-Fans of MacBook Pro Laptops often run at very high speed (over 3100 rpm) and they are very loud. 
+In Linux fans of MacBook Pro Laptops often run at very high speed (over 3100 rpm) and they are very loud. 
 Unfortunately at CPU temperatures below 75 degrees Celsius, cooling fans are more efficient at lower speeds (below 3100 rpm).
 
 This script keeps CPU temperature in the range of 55-75 degrees Celsius by adjusting speed of fans at optimal rpm.
