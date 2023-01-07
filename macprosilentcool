@@ -1,0 +1,233 @@
+#!/bin/bash
+clear
+fanchange=""
+tempchange=""
+fanspeed=3100
+targettemp=55
+limittemp=75
+if [ $# != 0 ]; then
+    targettemp=$1
+    if [ $2 != '' ]; then
+       limittemp=$2
+    fi
+fi
+
+while :
+do
+#    clear
+    tput cup 0 0
+    temp=$(cat $(find /sys/devices/platform/coretemp.0 -name "temp1_input"))
+    let "temp = ${temp} / 1000"
+    temp1=$(cat $(find /sys/devices/platform/coretemp.0 -name "temp2_input"))
+    let "temp1 = ${temp1} / 1000"
+    temp2=$(cat $(find /sys/devices/platform/coretemp.0 -name "temp3_input"))
+    let "temp2 = ${temp2} / 1000"
+    temp3=$(cat $(find /sys/devices/platform/coretemp.0 -name "temp4_input"))
+    let "temp3 = ${temp3} / 1000"
+    temp4=$(cat $(find /sys/devices/platform/coretemp.0 -name "temp5_input"))
+    let "temp4 = ${temp4} / 1000"
+#    if [ ${temp2} -gt ${temp1} ]; then
+#        let "temp = ${temp2}"
+#    else 
+#        let "temp = ${temp1}"
+#    fi
+#    let "temp = (${temp1} + ${temp2} + ${temp3} + ${temp4}) / 4"
+
+    currentfanspeed1=$(cat /sys/devices/platform/applesmc.768/fan1_input)
+    currentfanspeed2=$(cat /sys/devices/platform/applesmc.768/fan2_input)
+    let "currentfanspeed=(${currentfanspeed1} + ${currentfanspeed2}) / 2"
+
+    if [ ${temp} -gt ${targettemp} ]; then
+        if [ ${fanspeed} -ge 3100 ]; then
+            if [ ${targettemp} -lt ${limittemp} ]; then
+#                echo "Temperature above target! -> Increasing target temperature."
+                let "targettemp = ${targettemp} + 1"
+                tempchange=" (+1)"
+            else
+                if [ ${currentfanspeed} -ge ${fanspeed} ]; then
+                    if [ ${fanspeed} -lt 6100 ]; then
+#                        echo "Temperature above target! -> Increasing fan speed."
+                        let "fanspeed = ${fanspeed} + 100"
+                        fanchange=" (+100)"
+                    else
+#                        echo "Temperature above target! -> Setting highest fan speed."
+                        fanspeed=6200
+                        fanchange=" (+100)"
+                    fi
+#                else
+#                    echo "Temperature above target! -> Waiting for target fan speed to be reached."
+                fi
+            fi
+        else
+            if [ ${currentfanspeed} -ge ${fanspeed} ]; then
+                if [ ${fanspeed} -lt 6100 ]; then
+#                    echo "Temperature above target! -> Increasing fan speed."
+                    let "fanspeed = ${fanspeed} + 100"
+                    fanchange=" (+100)"
+                else
+#                    echo "Temperature above target! -> Setting highest fan speed."
+                    fanspeed=6200
+                    fanchange=" (+100)"
+                fi
+#            else
+#                echo "Temperature above target! -> Waiting for target fan speed to be reached."
+            fi
+        fi
+    elif [ ${temp} -le ${targettemp} ]; then
+        if [ ${fanspeed} -le 3100 ]; then
+            if [ ${targettemp} -gt 60 ]; then
+#                echo "Temperature below target! -> Decreasing target temperature."
+                let "targettemp = ${targettemp} - 1"
+                tempchange=" (-1)"
+            else
+                if [ ${currentfanspeed} -le ${fanspeed} ]; then
+                    if [ ${fanspeed} -gt 200 ]; then
+#                        echo "Temperature below target! -> Decreasing fan speed."
+                        let "fanspeed = ${fanspeed} - 200"
+                    else
+#                        echo "Temperature below target! -> Stopping fan."
+                        fanspeed=0
+                    fi
+                    fanchange=" (-200)"
+#                else
+#                    echo "Temperature below target! -> Waiting for target fan speed to be reached"
+                fi
+                tempchange=""
+            fi
+        else
+            if [ ${currentfanspeed} -le ${fanspeed} ]; then
+                if [ ${fanspeed} -gt 200 ]; then
+#                    echo "Temperature below target! -> Decreasing fan speed."
+                    let "fanspeed = ${fanspeed} - 200"
+                    fanchange=" (-200)"
+                else
+#                    echo "Temperature below target! -> Stopping fan."
+                    fanspeed=0
+                    fanchange=" (-200)"
+                fi
+#            else
+#                echo "Temperature below target! -> Waiting for target fan speed to be reached"
+            fi
+        fi
+    else
+#	if [ ${fanspeed} -gt 1000 ]; then
+#	    echo "Target temperature reached! -> Decreasing fan speed."
+#	    let "fanspeed = ${fanspeed} - 100"
+#	else
+#	    echo "Target temperature reached! -> Fan speed not changed."
+            fanchange=""
+#	fi
+    fi
+    printf $'\u2554'
+    for loccnt in {1..42}
+    do
+      printf $'\u2550'
+    done
+    printf $'\u2557'
+    echo
+    printf $'\u2551'"   Silent Cooling for Apple MacBook Pro   "$'\u2551'
+    echo
+    printf $'\u2560'
+    for loccnt in {1..42}
+    do
+      printf $'\u2550'
+    done
+    printf $'\u2563'
+    echo
+    printf $'\u2560'
+    for loccnt in {1..8}
+    do
+      printf $'\u2550'
+    done
+    printf $'\u2566'
+    for loccnt in {1..15}
+    do
+      printf $'\u2550'
+    done
+    printf $'\u2564'
+    for loccnt in {1..17}
+    do
+      printf $'\u2550'
+    done
+    printf $'\u2563'
+    echo
+    printf "%-11s%+1s%+13s  %+1s%+13s    %+1s\n" $'\u2551' $'\u2551' "Temperature" $'\u2502' "Fan Speed" $'\u2551'
+    printf $'\u2560'
+    for loccnt in {1..8}
+    do
+      printf $'\u2550'
+    done
+    printf $'\u256C'
+    for loccnt in {1..15}
+    do
+      printf $'\u2550'
+    done
+    printf $'\u256A'
+    for loccnt in {1..17}
+    do
+      printf $'\u2550'
+    done
+    printf $'\u2563'
+    echo
+    printf "%-1s%+7s %+1s%+16s %+1s%+16s %+1s\n" $'\u2551' "Target" $'\u2551' "${targettemp}॰C${tempchange}" $'\u2502' "${fanspeed} RPM${fanchange}" $'\u2551'
+    printf $'\u255F'
+    for loccnt in {1..8}
+    do
+      printf $'\u2500'
+    done
+    printf $'\u256B'
+    for loccnt in {1..15}
+    do
+      printf $'\u2500'
+    done
+    printf $'\u253C'
+    for loccnt in {1..17}
+    do
+      printf $'\u2500'
+    done
+    printf "%-2s\n" $'\u2562'
+    printf "%-11s%+1s%+16s %-20s%+1s\n" $'\u2551' $'\u2551' "${temp}॰C" $'\u2502' $'\u2551'
+    printf "%-11s%+1s%-7s%+1s%-7s%+1s%+16s %-2s\n" $'\u2551' $'\u255F' $'\u254C'$'\u254C'$'\u254C'$'\u254C'$'\u254C'$'\u254C'$'\u254C' $'\u252C' $'\u254C'$'\u254C'$'\u254C'$'\u254C'$'\u254C'$'\u254C'$'\u254C' $'\u2524' "$(sensors | grep Left | cut -d' ' -f 5) RPM" $'\u2551'
+    printf "%-1s%+7s %+1s%+8s %+1s%+8s %-20s%-2s\n" $'\u2551' "Actual" $'\u2551' "${temp1}॰C" $'\u250A' ${temp2}॰C $'\u2502' $'\u2551'
+    printf "%-11s%+1s%-7s%+1s%-7s%+1s%+16s %-2s\n" $'\u2551' $'\u255F' $'\u254C'$'\u254C'$'\u254C'$'\u254C'$'\u254C'$'\u254C'$'\u254C' $'\u253C' $'\u254C'$'\u254C'$'\u254C'$'\u254C'$'\u254C'$'\u254C'$'\u254C' $'\u2524' "$(sensors | grep Right | cut -d' ' -f 4) RPM" $'\u2551'
+    printf "%-11s%+1s%+8s %+1s%+8s %-20s%-2s\n" $'\u2551' $'\u2551' "${temp3}॰C" $'\u250A' ${temp4}॰C $'\u2502' $'\u2551'
+    printf $'\u255A'
+    for loccnt in {1..8}
+    do
+      printf $'\u2550'
+    done
+    printf $'\u2569'
+    for loccnt in {1..7}
+    do
+      printf $'\u2550'
+    done
+    printf $'\u2567'
+    for loccnt in {1..7}
+    do
+      printf $'\u2550'
+    done
+    printf $'\u2567'
+    for loccnt in {1..17}
+    do
+      printf $'\u2550'
+    done
+    printf $'\u255D'
+    echo
+    echo
+#    echo "Target temperature:  ${targettemp}"
+#    echo "Current temperature: ${temp}"
+#    echo "		Core0: ${temp1}"
+#    echo "		Core1: ${temp2}"
+#    echo "Current fan speed:   ${fanspeed}
+#    echo
+    echo 1 > /sys/devices/platform/applesmc.768/fan1_manual
+    echo 1 > /sys/devices/platform/applesmc.768/fan2_manual
+    echo ${fanspeed} > /sys/devices/platform/applesmc.768/fan1_min
+    echo ${fanspeed} > /sys/devices/platform/applesmc.768/fan1_output
+    echo ${fanspeed} > /sys/devices/platform/applesmc.768/fan2_min
+    echo ${fanspeed} > /sys/devices/platform/applesmc.768/fan2_output
+#    cat /sys/devices/platform/applesmc.768/fan1_manual
+#    cat /sys/devices/platform/applesmc.768/fan1_min
+#     cat /sys/devices/platform/applesmc.768/fan1_output && sensors
+    sleep 1
+done
